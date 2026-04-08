@@ -1,6 +1,17 @@
 @use "./base.scss";
 
 /* Center tables on the page */
+
+article img {
+    max-width: 100%;
+    height: auto;
+}
+
+// Rispetta l'attributo width se usi <img width="300">
+article img[width] {
+    width: attr(width px);
+    max-width: 100%;
+}
 .markdown-preview-view table {
     margin-left: auto;
     margin-right: auto;
