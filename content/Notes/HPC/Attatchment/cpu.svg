@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='328px' height='417px' viewBox='0 0 328px 417px' version='1.1'>
+	<rect id='Machine_0_rect' class='Machine' x='0' y='0' width='328' height='379' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='Machine_0_text' class='Machine' font-family='Monospace' x='7' y='17' fill='rgb(0,0,0)' font-size='10px'>Machine (8192MB total)</text>
+	<rect id='Package_0_rect' class='Package' x='7' y='24' width='197' height='348' fill='rgb(210,231,164)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='Package_0_text' class='Package' font-family='Monospace' x='14' y='41' fill='rgb(0,0,0)' font-size='10px'>Package L#0</text>
+	<rect id='L3_0_rect' class='L3' x='14' y='79' width='183' height='24' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='L3_0_text' class='L3' font-family='Monospace' x='21' y='96' fill='rgb(0,0,0)' font-size='10px'>L3 (4096KB)</text>
+	<rect id='L2_0_rect' class='L2' x='14' y='110' width='88' height='24' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='L2_0_text' class='L2' font-family='Monospace' x='21' y='127' fill='rgb(0,0,0)' font-size='10px'>L2 (256KB)</text>
+	<rect id='Core_0_rect' class='Core' x='14' y='141' width='88' height='224' fill='rgb(190,190,190)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='Core_0_text' class='Core' font-family='Monospace' x='21' y='158' fill='rgb(0,0,0)' font-size='10px'>Core L#0</text>
+	<rect id='L1d_0_rect' class='L1d' x='21' y='165' width='74' height='24' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='L1d_0_text' class='L1d' font-family='Monospace' x='28' y='182' fill='rgb(0,0,0)' font-size='10px'>L1d (32KB)</text>
+	<rect id='L1i_0_rect' class='L1i' x='21' y='196' width='74' height='24' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='L1i_0_text' class='L1i' font-family='Monospace' x='28' y='213' fill='rgb(0,0,0)' font-size='10px'>L1i (32KB)</text>
+	<rect id='PU_0_rect' class='PU' x='21' y='220' width='50' height='38' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='PU_0_text' class='PU' font-family='Monospace' x='28' y='237' fill='rgb(0,0,0)' font-size='10px'>PU L#0</text>
+	<text id='PU_0_text_1' class='PU' font-family='Monospace' x='37' y='251' fill='rgb(0,0,0)' font-size='10px'>P#0</text>
+	<rect id='L1d_1_rect' class='L1d' x='21' y='265' width='74' height='24' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='L1d_1_text' class='L1d' font-family='Monospace' x='28' y='282' fill='rgb(0,0,0)' font-size='10px'>L1d (32KB)</text>
+	<rect id='L1i_1_rect' class='L1i' x='21' y='296' width='74' height='24' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='L1i_1_text' class='L1i' font-family='Monospace' x='28' y='313' fill='rgb(0,0,0)' font-size='10px'>L1i (32KB)</text>
+	<rect id='PU_1_rect' class='PU' x='21' y='320' width='50' height='38' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='PU_1_text' class='PU' font-family='Monospace' x='28' y='337' fill='rgb(0,0,0)' font-size='10px'>PU L#1</text>
+	<text id='PU_1_text_1' class='PU' font-family='Monospace' x='37' y='351' fill='rgb(0,0,0)' font-size='10px'>P#1</text>
+	<rect id='L2_1_rect' class='L2' x='109' y='110' width='88' height='24' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='L2_1_text' class='L2' font-family='Monospace' x='116' y='127' fill='rgb(0,0,0)' font-size='10px'>L2 (256KB)</text>
+	<rect id='Core_1_rect' class='Core' x='109' y='141' width='88' height='224' fill='rgb(190,190,190)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='Core_1_text' class='Core' font-family='Monospace' x='116' y='158' fill='rgb(0,0,0)' font-size='10px'>Core L#1</text>
+	<rect id='L1d_2_rect' class='L1d' x='116' y='165' width='74' height='24' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='L1d_2_text' class='L1d' font-family='Monospace' x='123' y='182' fill='rgb(0,0,0)' font-size='10px'>L1d (32KB)</text>
+	<rect id='L1i_2_rect' class='L1i' x='116' y='196' width='74' height='24' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='L1i_2_text' class='L1i' font-family='Monospace' x='123' y='213' fill='rgb(0,0,0)' font-size='10px'>L1i (32KB)</text>
+	<rect id='PU_2_rect' class='PU' x='116' y='220' width='50' height='38' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='PU_2_text' class='PU' font-family='Monospace' x='123' y='237' fill='rgb(0,0,0)' font-size='10px'>PU L#2</text>
+	<text id='PU_2_text_1' class='PU' font-family='Monospace' x='132' y='251' fill='rgb(0,0,0)' font-size='10px'>P#2</text>
+	<rect id='L1d_3_rect' class='L1d' x='116' y='265' width='74' height='24' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='L1d_3_text' class='L1d' font-family='Monospace' x='123' y='282' fill='rgb(0,0,0)' font-size='10px'>L1d (32KB)</text>
+	<rect id='L1i_3_rect' class='L1i' x='116' y='296' width='74' height='24' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='L1i_3_text' class='L1i' font-family='Monospace' x='123' y='313' fill='rgb(0,0,0)' font-size='10px'>L1i (32KB)</text>
+	<rect id='PU_3_rect' class='PU' x='116' y='320' width='50' height='38' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='PU_3_text' class='PU' font-family='Monospace' x='123' y='337' fill='rgb(0,0,0)' font-size='10px'>PU L#3</text>
+	<text id='PU_3_text_1' class='PU' font-family='Monospace' x='132' y='351' fill='rgb(0,0,0)' font-size='10px'>P#3</text>
+	<rect id='NUMANode_0_rect' class='NUMANode' x='14' y='48' width='183' height='24' fill='rgb(239,223,222)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='NUMANode_0_text' class='NUMANode' font-family='Monospace' x='21' y='65' fill='rgb(0,0,0)' font-size='10px'>NUMANode L#0 P#0 (8192MB)</text>
+	<rect id='CoProc_0_rect' class='CoProc' x='211' y='24' width='110' height='52' fill='rgb(222,222,222)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='CoProc_0_text' class='CoProc' font-family='Monospace' x='218' y='41' fill='rgb(0,0,0)' font-size='10px'>CoProc opencl0d1</text>
+	<text id='CoProc_0_text_1' class='CoProc' font-family='Monospace' x='218' y='55' fill='rgb(0,0,0)' font-size='10px'>48 compute units</text>
+	<text id='CoProc_0_text_2' class='CoProc' font-family='Monospace' x='218' y='69' fill='rgb(0,0,0)' font-size='10px'>1536 MB</text>
+	<rect id='anon_rect' x='0' y='379' width='328' height='38' fill='rgb(255,255,255)' stroke='rgb(0,0,0)' stroke-width='1'/>
+	<text id='anon_text' font-family='Monospace' x='7' y='396' fill='rgb(0,0,0)' font-size='10px'>Host: MBP-di-Samuele.home-life.hub</text>
+	<text id='anon_text_1' font-family='Monospace' x='7' y='410' fill='rgb(0,0,0)' font-size='10px'>Date: Lun 23 Feb 15:36:17 2026</text>
+</svg>
