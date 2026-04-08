@@ -4,8 +4,10 @@ on:
   push:
     branches:
       - v4
+
 env:
   THEME_NAME: things
+
 permissions:
   contents: read
   pages: write
