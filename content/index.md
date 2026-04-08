@@ -5,7 +5,7 @@ draft: false
 
 > Qui si trovano alcuni dei miei appunti presi durante gli studi di **Ingegneria e Scienze Informatiche** all'_Università di Bologna_.
 
-# Materie
+<!-- # Materie
 
 ## [[/HPC|High Performance Computing]]
 
@@ -29,4 +29,4 @@ draft: false
 
 **Prof.** [Silvia Mirri](https://www.unibo.it/sitoweb/silvia.mirri/)
 
-**Risorse**: [Virtuale](https://virtuale.unibo.it/course/view.php?id=71621)
+**Risorse**: [Virtuale](https://virtuale.unibo.it/course/view.php?id=71621) -->
