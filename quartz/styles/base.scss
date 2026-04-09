@@ -646,8 +646,8 @@ article img {
 
 // Rispetta l'attributo width se usi <img width="300">
 article img[width] {
-  width: attr(width px);
-  max-width: 100%;
+  width: attr(width px) !important;
+  max-width: 100% !important;
 }
 
 .markdown-preview-view table {
