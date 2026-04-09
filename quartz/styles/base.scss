@@ -639,3 +639,32 @@ iframe.pdf {
   transition: width 0.2s ease;
   z-index: 9999;
 }
+article img {
+  max-width: 100%;
+  height: auto;
+}
+
+// Rispetta l'attributo width se usi <img width="300">
+article img[width] {
+  width: attr(width px);
+  max-width: 100%;
+}
+
+.markdown-preview-view table {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.markdown-rendered p {
+  margin-bottom: 0px;
+}
+
+ul.has-list-bullet {
+  margin-top: 0px;
+}
