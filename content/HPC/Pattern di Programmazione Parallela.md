@@ -6,7 +6,7 @@
 >[!note] Definizione
 >È un pattern che si applica quando un problema può essere scomposto in task indipendenti che richiedono comunicazione quasi nulla tra di loro.
 
-Ad esempio:
+Ad Esempio:
 - Somma di array
 - Calcolo dell'insieme di Mandelbrot
 - 3D rendering

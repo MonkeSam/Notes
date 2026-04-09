@@ -1,4 +1,4 @@
-a## In generale
+## In generale
 ![[abstract_architecture.png]]
 >[!note] Definizione
 >Un'architettura parallela a livello astratto si tratta di un insieme di unità di calcolo connesse in un qualche modo tra di loro e con un insieme di memorie.
