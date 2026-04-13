@@ -1,25 +1,33 @@
 /**
  * CodeStyler – Quartz transformer plugin
  * ==========================================
- * Replica le funzionalità del plugin Obsidian "Code Styler":
+ * Replica le funzionalità del plugin Obsidian "Code Styler" per:
  *
+ * ── CODICE MULTIRIGA ──────────────────────────────────────────
  *   title:"My File"       → header con nome file
  *   title:utils.ts        → stesso, senza virgolette se non ha spazi
  *   ln                    → numeri di riga
- *   ln:false              → disabilita numeri di riga (se defaultLineNumbers=true)
+ *   ln:false              → disabilita numeri di riga
  *   hl:1,3-5,"testo"      → evidenzia righe per numero, range o testo
  *   fold                  → blocco collassabile (chiuso di default)
  *   fold:"Testo custom"   → collassabile con etichetta personalizzata
  *
- * Esempi di uso nei tuoi appunti Obsidian:
+ *   Esempio:
+ *     ```ts title:"src/utils.ts" ln hl:2,5-7
+ *     ...codice...
+ *     ```
  *
- *   ```ts title:"src/utils.ts" ln hl:2,5-7
- *   ...codice...
- *   ```
+ * ── CODICE INLINE ─────────────────────────────────────────────
+ *   Sintassi Code Styler: `{linguaggio} codice`
+ *   (lo spazio tra {lang} e il codice è opzionale)
  *
- *   ```python fold:"Soluzione esercizio 3"
- *   ...codice...
- *   ```
+ *   Esempio:
+ *     Usa `{ts} const x = 42` per dichiarare una variabile.
+ *     Oppure `{python}print("ciao")` senza spazio.
+ *
+ *   Il plugin converte automaticamente questa sintassi nel formato
+ *   atteso da rehype-pretty-code: `codice{:linguaggio}`
+ *   così Shiki applica l'highlighting corretto.
  *
  * ==========================================
  * INSTALLAZIONE
@@ -30,13 +38,19 @@
  * 2. Aggiungi l'export in quartz/plugins/transformers/index.ts:
  *      export { CodeStyler } from "./codeStyler"
  *
- * 3. In quartz.config.ts, aggiungi DOPO SyntaxHighlighting:
+ * 3. In quartz.config.ts, aggiungi il plugin:
  *      transformers: [
  *        ...
- *        Plugin.SyntaxHighlighting(),
- *        Plugin.CodeStyler(),          // ← aggiungi qui
+ *        Plugin.CodeStyler(),          // ← PRIMA di SyntaxHighlighting
+ *        Plugin.SyntaxHighlighting(),  // ← SyntaxHighlighting dopo
  *        ...
  *      ]
+ *
+ *    NOTA: per il codice inline, CodeStyler deve venire PRIMA di
+ *    SyntaxHighlighting, perché trasforma il testo Markdown grezzo
+ *    (textTransform) prima che rehype-pretty-code lo elabori.
+ *    Il processing dei blocchi multiriga avviene comunque dopo
+ *    tramite htmlPlugins, quindi l'ordine è corretto per entrambi.
  *
  * 4. Opzionalmente personalizza:
  *      Plugin.CodeStyler({
@@ -61,9 +75,9 @@ export interface CodeStylerOptions {
   defaultLineNumbers: boolean
   /** Testo nell'header quando fold è attivo senza title */
   defaultFoldText: string
-  /** Mostra il tag del linguaggio nell'header */
+  /** Mostra il tag del linguaggio nell'header dei blocchi multiriga */
   showLanguageTag: boolean
-  /** Mostra il pulsante copia nell'header */
+  /** Mostra il pulsante copia nell'header dei blocchi multiriga */
   showCopyButton: boolean
 }
 
@@ -83,7 +97,34 @@ interface CodeParams {
   highlightTexts: string[]
 }
 
-// ─── Parser meta-stringa ──────────────────────────────────────────────────────
+// ─── textTransform: converte sintassi inline Code Styler ─────────────────────
+//
+// Code Styler usa: `{linguaggio} codice`
+// rehype-pretty-code vuole: `codice{:linguaggio}`
+//
+// Questa funzione trasforma il Markdown grezzo prima del parsing,
+// convertendo tutti i backtick inline con la sintassi Code Styler.
+//
+// Regex: cattura `{lang}[ ]?codice` e produce `codice{:lang}`
+// Non tocca i fenced code block (``` ... ```) né la sintassi {:.token}
+
+function transformInlineCodeSyntax(src: string): string {
+  // Regex: backtick aperto, poi {linguaggio} opzionalmente seguito da spazio, poi il codice, poi backtick chiuso
+  // Esclude {:.token} (che inizia con punto) e blocchi già nel formato corretto ({:lang})
+  // Usa lookahead negativo per non toccare {:.xxx} e {:xxx} già convertiti
+  return src.replace(
+    /`\{([a-zA-Z][a-zA-Z0-9_+-]*)\} ?(.*?)`/g,
+    (_, lang, code) => {
+      // Evita doppia conversione se il codice contiene già {:...}
+      if (code.endsWith(`{:${lang}}`)) return _
+      // Escape di eventuali backtick nel codice (non dovrebbero esserci, ma per sicurezza)
+      const safeCode = code.replace(/`/g, "\\`")
+      return `\`${safeCode}{:${lang}}\``
+    },
+  )
+}
+
+// ─── Parser meta-stringa (per blocchi multiriga) ──────────────────────────────
 
 function parseMetaString(meta: string, opts: CodeStylerOptions): CodeParams {
   const result: CodeParams = {
@@ -186,13 +227,12 @@ function el(tag: string, props: Record<string, unknown>, children: Node[]): Elem
   return { type: "element", tagName: tag, properties: props, children: children as Element[] }
 }
 
-// ─── Build blocco ─────────────────────────────────────────────────────────────
+// ─── Build blocco multiriga ───────────────────────────────────────────────────
 
 function buildCodeBlock(pre: Element, params: CodeParams, lang: string, opts: CodeStylerOptions): Element {
   const color = LANG_COLORS[lang.toLowerCase()] ?? "#6b7280"
   const needsHeader = params.title || params.fold || (opts.showLanguageTag && lang) || opts.showCopyButton
 
-  // Header items
   const hItems: Node[] = []
 
   if (opts.showLanguageTag && lang) {
@@ -229,8 +269,9 @@ function buildCodeBlock(pre: Element, params: CodeParams, lang: string, opts: Co
     style: `border-left: 3px solid ${color};`,
   }, hItems)
 
-  // Pre modificato
-  const existingCls = Array.isArray(pre.properties?.className) ? [...(pre.properties.className as string[])] : []
+  const existingCls = Array.isArray(pre.properties?.className)
+    ? [...(pre.properties.className as string[])]
+    : []
   const styledPre: Element = {
     ...pre,
     properties: {
@@ -256,7 +297,6 @@ function buildCodeBlock(pre: Element, params: CodeParams, lang: string, opts: Co
     })
   }
 
-  // Wrapper
   const wrapperCls = [
     "cs-wrapper",
     `cs-lang-${lang || "plain"}`,
@@ -274,7 +314,36 @@ function buildCodeBlock(pre: Element, params: CodeParams, lang: string, opts: Co
   }, wrapperChildren)
 }
 
-// ─── Plugin ───────────────────────────────────────────────────────────────────
+// ─── Stile per codice inline già processato da rehype-pretty-code ─────────────
+//
+// Dopo la conversione textTransform, rehype-pretty-code trasforma
+// `codice{:lang}` in un <code> con data-language="lang".
+// Qui aggiungiamo solo la classe cs-inline e il tag linguaggio visivo.
+
+function styleInlineCode(tree: Root): void {
+  visit(tree, "element", (node: Element, _index, parent) => {
+    // Cerca <code> inline già processati da rehype-pretty-code:
+    // hanno data-language ma NON sono dentro un <pre>
+    if (node.tagName !== "code") return
+    if (!node.properties?.["data-language"]) return
+
+    // Salta se il padre è <pre> (è un blocco, non inline)
+    if (parent && (parent as Element).tagName === "pre") return
+
+    const lang = String(node.properties["data-language"])
+    const color = LANG_COLORS[lang.toLowerCase()] ?? "#6b7280"
+
+    // Aggiungi classe e attributo per stile CSS
+    const existingCls = Array.isArray(node.properties.className)
+      ? [...(node.properties.className as string[])]
+      : []
+    node.properties.className = [...existingCls, "cs-inline"]
+    node.properties["data-cs-lang"] = lang
+    node.properties.style = `--cs-inline-color: ${color}; ${String(node.properties.style ?? "")}`
+  })
+}
+
+// ─── Plugin export ────────────────────────────────────────────────────────────
 
 export const CodeStyler: QuartzTransformerPlugin<Partial<CodeStylerOptions>> = (userOpts?) => {
   const opts: CodeStylerOptions = { ...defaultOptions, ...userOpts }
@@ -282,9 +351,20 @@ export const CodeStyler: QuartzTransformerPlugin<Partial<CodeStylerOptions>> = (
   return {
     name: "CodeStyler",
 
+    // ── textTransform: converte `{lang} codice` → `codice{:lang}` ────────────
+    // Viene eseguito prima del parsing Markdown, quindi prima di rehype-pretty-code.
+    textTransform(_ctx, src) {
+      return transformInlineCodeSyntax(src)
+    },
+
+    // ── htmlPlugins: trasforma i blocchi <pre> e stila il codice inline ───────
     htmlPlugins(): Plugin[] {
       return [
         () => (tree: Root) => {
+          // 1. Stila il codice inline già processato da rehype-pretty-code
+          styleInlineCode(tree)
+
+          // 2. Trasforma i blocchi <pre> multiriga
           visit(tree, "element", (node: Element, index, parent) => {
             if (node.tagName !== "pre") return
             if (typeof index === "undefined" || !parent) return
@@ -297,8 +377,12 @@ export const CodeStyler: QuartzTransformerPlugin<Partial<CodeStylerOptions>> = (
             const classes = Array.isArray(codeEl.properties?.className)
               ? (codeEl.properties.className as string[])
               : []
-            const langClass = classes.find((c) => c.startsWith("language-") || c.startsWith("lang-"))
-            const lang = langClass ? langClass.replace(/^language-|^lang-/, "") : ""
+            const langClass = classes.find(
+              (c) => c.startsWith("language-") || c.startsWith("lang-"),
+            )
+            const lang = langClass
+              ? langClass.replace(/^language-|^lang-/, "")
+              : (String(node.properties?.["data-language"] ?? "") || "")
 
             const meta =
               String(node.properties?.["data-meta"] ?? "") ||
@@ -332,7 +416,11 @@ export const CodeStyler: QuartzTransformerPlugin<Partial<CodeStylerOptions>> = (
 // ─── CSS ──────────────────────────────────────────────────────────────────────
 
 const CSS_CODE_STYLER = `
-/* ── Code Styler Plugin per Quartz ── */
+/* ════════════════════════════════════════════
+   Code Styler Plugin per Quartz
+   ════════════════════════════════════════════ */
+
+/* ── Blocchi multiriga ── */
 .cs-wrapper{position:relative;margin:1.25em 0;border-radius:6px;overflow:hidden;font-size:.9em;box-shadow:0 2px 10px rgba(0,0,0,.2)}
 .cs-header{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 12px;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.07);font-family:var(--font-monospace,monospace);font-size:.82em;user-select:none;cursor:default;min-height:32px}
 .cs-foldable .cs-header{cursor:pointer}
@@ -351,6 +439,39 @@ const CSS_CODE_STYLER = `
 .cs-has-line-numbers pre code [data-line]{counter-increment:cs-ln;padding-left:3.2em!important;position:relative}
 .cs-has-line-numbers pre code [data-line]::before{content:counter(cs-ln);position:absolute;left:0;width:2.5em;text-align:right;padding-right:.5em;color:rgba(150,160,180,.35);border-right:1px solid rgba(255,255,255,.07);pointer-events:none;user-select:none;font-size:.82em;line-height:inherit}
 .cs-wrapper pre code [data-line].cs-hl{background:rgba(255,214,0,.11);border-left:3px solid #f59e0b;margin-left:-3px}
+
+/* ── Codice inline con sintassi {lang} ── */
+/* rehype-pretty-code applica già i colori dei token Shiki,
+   noi aggiungiamo solo un badge con il nome del linguaggio
+   e un leggero stile visivo per differenziarlo dal codice
+   inline senza linguaggio. */
+code.cs-inline{
+  position:relative;
+  padding-left:0.25em;
+  padding-right:0.25em;
+  border-radius:4px;
+  /* Sottile bordo sinistro colorato con il colore del linguaggio */
+  border-left:2px solid var(--cs-inline-color,#6b7280);
+}
+
+/* Badge linguaggio visualizzato dopo il codice inline */
+code.cs-inline::after{
+  content:attr(data-cs-lang);
+  display:inline-block;
+  margin-left:0.35em;
+  padding:0 0.3em;
+  font-size:0.68em;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.05em;
+  color:var(--cs-inline-color,#6b7280);
+  opacity:0.7;
+  vertical-align:super;
+  line-height:1;
+  /* Nessun background per non essere troppo invadente */
+}
+
+/* ── Tema chiaro ── */
 :root[saved-theme=light] .cs-header,html[data-theme=light] .cs-header{background:rgba(0,0,0,.04);border-bottom-color:rgba(0,0,0,.08)}
 :root[saved-theme=light] .cs-lang-tag,html[data-theme=light] .cs-lang-tag{color:rgba(60,80,110,.65)}
 :root[saved-theme=light] .cs-title,html[data-theme=light] .cs-title{color:rgba(20,40,80,.85)}
@@ -359,5 +480,7 @@ const CSS_CODE_STYLER = `
 :root[saved-theme=light] .cs-foldable .cs-header:hover,html[data-theme=light] .cs-foldable .cs-header:hover{background:rgba(0,0,0,.06)}
 :root[saved-theme=light] .cs-has-line-numbers pre code [data-line]::before,html[data-theme=light] .cs-has-line-numbers pre code [data-line]::before{color:rgba(80,100,130,.35);border-right-color:rgba(0,0,0,.09)}
 :root[saved-theme=light] .cs-wrapper pre code [data-line].cs-hl,html[data-theme=light] .cs-wrapper pre code [data-line].cs-hl{background:rgba(255,190,0,.14);border-left-color:#d97706}
+:root[saved-theme=light] code.cs-inline,html[data-theme=light] code.cs-inline{border-left-color:var(--cs-inline-color,#6b7280)}
+
 @media(max-width:600px){.cs-copy-label{display:none}}
 `
