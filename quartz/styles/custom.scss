@@ -1,4 +1,186 @@
 @use "./base.scss";
 
-/* Center tables on the page */
+/* ============================================================
+   Code Styler – Quartz Plugin CSS
+   Compatible con il tema Quartz di default (dark/light).
+   Aggiunge questo file come custom.scss oppure includi il
+   path in externalResources() del plugin.
+   ============================================================ */
 
+/* ── Wrapper ─────────────────────────────────────────────── */
+.cs-wrapper {
+    position: relative;
+    margin: 1.2em 0;
+    border-radius: 6px;
+    overflow: hidden;
+    font-size: 0.9em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background: var(--code-bg, #1e1e2e);
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+.cs-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--cs-header-bg, rgba(255, 255, 255, 0.06));
+    border-bottom: 1px solid var(--cs-border, rgba(255, 255, 255, 0.08));
+    font-family: var(--font-monospace, monospace);
+    font-size: 0.82em;
+    user-select: none;
+    cursor: default;
+    /* border-left viene iniettato inline per il colore linguaggio */
+}
+
+/* Quando il wrapper è foldable, l'header è cliccabile */
+.cs-foldable .cs-header {
+    cursor: pointer;
+}
+
+.cs-foldable .cs-header:hover {
+    background: var(--cs-header-hover, rgba(255, 255, 255, 0.1));
+}
+
+/* ── Tag linguaggio ───────────────────────────────────────── */
+.cs-lang-tag {
+    font-size: 0.78em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--cs-lang-color, #a0aec0);
+    opacity: 0.8;
+}
+
+/* ── Titolo file ──────────────────────────────────────────── */
+.cs-title {
+    flex: 1;
+    font-size: 0.85em;
+    color: var(--cs-title-color, #e2e8f0);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Pulsante copia ──────────────────────────────────────── */
+.cs-copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--cs-border, rgba(255, 255, 255, 0.15));
+    border-radius: 4px;
+    color: var(--cs-copy-color, #a0aec0);
+    cursor: pointer;
+    font-size: 0.78em;
+    transition: background 0.15s, color 0.15s;
+}
+
+.cs-copy-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.cs-copy-btn.copied {
+    color: #68d391;
+    border-color: #68d391;
+}
+
+.cs-copy-text {
+    /* Nascosta su mobile se si vuole solo icona */
+}
+
+/* ── Icona fold (freccia) ─────────────────────────────────── */
+.cs-fold-icon {
+    display: flex;
+    align-items: center;
+    color: var(--cs-lang-color, #a0aec0);
+    transition: transform 0.2s ease;
+}
+
+.cs-foldable .cs-fold-icon svg {
+    transition: transform 0.2s ease;
+}
+
+.cs-foldable.cs-folded .cs-fold-icon svg {
+    transform: rotate(-90deg);
+}
+
+/* ── Corpo codice ─────────────────────────────────────────── */
+.cs-wrapper pre {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    /* Il border-left colorato è già sul pre */
+}
+
+/* ── Fold: nasconde il pre quando chiuso ─────────────────── */
+.cs-foldable.cs-folded>pre {
+    display: none;
+}
+
+/* ── Numeri di riga ──────────────────────────────────────── */
+/*
+  Quartz + rehype-pretty-code wrappa ogni riga in:
+    <span data-line="N">...</span>
+  Usiamo counter CSS per aggiungere i numeri senza JS.
+*/
+.cs-has-line-numbers pre code {
+    counter-reset: cs-line;
+}
+
+.cs-has-line-numbers pre code [data-line] {
+    counter-increment: cs-line;
+    padding-left: 3.5em !important;
+    position: relative;
+}
+
+.cs-has-line-numbers pre code [data-line]::before {
+    content: counter(cs-line);
+    position: absolute;
+    left: 0;
+    width: 2.8em;
+    text-align: right;
+    padding-right: 0.5em;
+    color: var(--cs-linenum-color, rgba(180, 180, 200, 0.35));
+    border-right: 1px solid var(--cs-border, rgba(255, 255, 255, 0.08));
+    pointer-events: none;
+    user-select: none;
+    font-size: 0.85em;
+    line-height: inherit;
+}
+
+/* ── Evidenziazione righe ────────────────────────────────── */
+.cs-wrapper pre code [data-line].cs-hl {
+    background: var(--cs-hl-bg, rgba(255, 220, 100, 0.12));
+    border-left: 3px solid var(--cs-hl-border, #f6c90e);
+    margin-left: -3px;
+}
+
+/* ── Tema Light ──────────────────────────────────────────── */
+:root[saved-theme="light"],
+html[data-theme="light"] {
+    --cs-header-bg: rgba(0, 0, 0, 0.04);
+    --cs-border: rgba(0, 0, 0, 0.1);
+    --cs-header-hover: rgba(0, 0, 0, 0.07);
+    --cs-lang-color: #718096;
+    --cs-title-color: #2d3748;
+    --cs-copy-color: #718096;
+    --cs-linenum-color: rgba(100, 100, 120, 0.4);
+    --cs-hl-bg: rgba(255, 200, 0, 0.15);
+    --cs-hl-border: #d97706;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .cs-copy-text {
+        display: none;
+    }
+
+    .cs-header {
+        font-size: 0.75em;
+    }
+}
