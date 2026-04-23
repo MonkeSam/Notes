@@ -165,7 +165,7 @@ In un programma seriale lo **scope** di una variabile indica la parte del progra
 ### Tipi
 - `{C}shared(x)` tutti i thread hanno accesso alla variabile `x` (==questo scope è impostato di default==)
 - `{C}private(x)` ogni thread ha la propria copia di `x` ma _non è inizializzata_. Le modifiche sulla variabile sono perse una volta usciti dal blocco parallelo.
-- `{C}firstprivate(x)` funziona come `{C}private(x)` ma le variabili sono già inizializzate con il valore impostato prima del blocco parallelo
+- `{C}firstprivate(x)` funziona come `{C}private(x)` ma le variabili sono già inizializzate con il valore impostato prima del blocco parallelo ^1c2643
 - `{C}default(share)` o `{C}default(none)` indicano il tipo di scope di default. È =={accent}consigliato== utilizzare `{C}default(none)` perché obbliga a specificare quali variabili vanno impostate a shared/private/firstprivate.
 
 >[!example] Array condiviso
@@ -244,6 +244,40 @@ Sono delle unità di lavoro composte da
 
 ### pragma omp task
 ![[omp_task.png]]
+#### Data scoping
+Lo scoping delle variabili all'interno di task funziona in modo leggermente diverso da quello che abbiamo visto finora.
+>[!info] Ogni variabile privata nel blocco `parallel` viene impostata come [[#^1c2643|firstprivate]] all'interno della task.
+
+>[!example] Esempio
+>In questo esempio vediamo che le variabili private `b` e `d` vengono impostate a firstprivate nel blocco `omp task`
+>
+>![[Task_scopes.png|500]]
+
+>[!tip] I task sono comodi per eseguire operazioni in parallelo su liste di puntatori
+
+>[!warning] Bisogna però prestare attenzione agli scope delle variabili quando si itera la lista
+
+>[!example] Liked list
+>In questo caso, essendo la lista `shared`, ogni task avrà lo stesso valore
+>
+>![[wrong_pointer_list.png]]
+>>[!success] Versione corretta
+>>![[correct_pointer_list.png]]
+
+#### Sincronizzazione
+Per sincronizzare i thread o sapere quando tutte le task sono terminate si fa uso di:
+- _barriera implicita_: quando termina il blocco `#pragma omp parallel`
+- _taskwait_: `{c}#pragma omp taskwait` viene usata per sincronizzare le task, aspettando che tutte le task terminino.
+
+>[!example] Esempio `taskwait`
+>![[example_taskwait.png]]
+
+
+
+
+
+
+
 
 
 

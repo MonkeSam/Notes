@@ -112,16 +112,13 @@ function transformInlineCodeSyntax(src: string): string {
   // Regex: backtick aperto, poi {linguaggio} opzionalmente seguito da spazio, poi il codice, poi backtick chiuso
   // Esclude {:.token} (che inizia con punto) e blocchi già nel formato corretto ({:lang})
   // Usa lookahead negativo per non toccare {:.xxx} e {:xxx} già convertiti
-  return src.replace(
-    /`\{([a-zA-Z][a-zA-Z0-9_+-]*)\} ?(.*?)`/g,
-    (_, lang, code) => {
-      // Evita doppia conversione se il codice contiene già {:...}
-      if (code.endsWith(`{:${lang}}`)) return _
-      // Escape di eventuali backtick nel codice (non dovrebbero esserci, ma per sicurezza)
-      const safeCode = code.replace(/`/g, "\\`")
-      return `\`${safeCode}{:${lang}}\``
-    },
-  )
+  return src.replace(/`\{([a-zA-Z][a-zA-Z0-9_+-]*)\} ?(.*?)`/g, (_, lang, code) => {
+    // Evita doppia conversione se il codice contiene già {:...}
+    if (code.endsWith(`{:${lang}}`)) return _
+    // Escape di eventuali backtick nel codice (non dovrebbero esserci, ma per sicurezza)
+    const safeCode = code.replace(/`/g, "\\`")
+    return `\`${safeCode}{:${lang}}\``
+  })
 }
 
 // ─── Parser meta-stringa (per blocchi multiriga) ──────────────────────────────
@@ -159,15 +156,20 @@ function parseMetaString(meta: string, opts: CodeStylerOptions): CodeParams {
     let cur = ""
     let inQ = false
     for (const ch of hlMatch[1]) {
-      if (ch === '"') { inQ = !inQ; cur += ch }
-      else if (ch === ',' && !inQ) { parts.push(cur.trim()); cur = "" }
-      else cur += ch
+      if (ch === '"') {
+        inQ = !inQ
+        cur += ch
+      } else if (ch === "," && !inQ) {
+        parts.push(cur.trim())
+        cur = ""
+      } else cur += ch
     }
     if (cur.trim()) parts.push(cur.trim())
 
     for (const p of parts) {
       if (p.startsWith('"') && p.endsWith('"')) {
-        result.highlightTexts.push(p.slice(1, -1)); continue
+        result.highlightTexts.push(p.slice(1, -1))
+        continue
       }
       const r = p.match(/^(\d+)-(\d+)$/)
       if (r) {
@@ -184,28 +186,41 @@ function parseMetaString(meta: string, opts: CodeStylerOptions): CodeParams {
 // ─── Colori per linguaggio ────────────────────────────────────────────────────
 
 const LANG_COLORS: Record<string, string> = {
-  js: "#f7df1e", javascript: "#f7df1e",
-  ts: "#3178c6", typescript: "#3178c6",
-  py: "#3572a5", python: "#3572a5",
-  rust: "#dea584", rs: "#dea584",
+  js: "#f7df1e",
+  javascript: "#f7df1e",
+  ts: "#3178c6",
+  typescript: "#3178c6",
+  py: "#3572a5",
+  python: "#3572a5",
+  rust: "#dea584",
+  rs: "#dea584",
   go: "#00add8",
   java: "#b07219",
   cpp: "#f34b7d",
   c: "#555555",
-  cs: "#178600", csharp: "#178600",
+  cs: "#178600",
+  csharp: "#178600",
   html: "#e34c26",
   css: "#563d7c",
-  scss: "#c6538c", sass: "#c6538c",
-  bash: "#89e051", sh: "#89e051", shell: "#89e051", zsh: "#89e051",
+  scss: "#c6538c",
+  sass: "#c6538c",
+  bash: "#89e051",
+  sh: "#89e051",
+  shell: "#89e051",
+  zsh: "#89e051",
   json: "#40a6ff",
-  yaml: "#cb171e", yml: "#cb171e",
+  yaml: "#cb171e",
+  yml: "#cb171e",
   toml: "#9c4221",
-  md: "#083fa1", markdown: "#083fa1",
+  md: "#083fa1",
+  markdown: "#083fa1",
   sql: "#e38c00",
   php: "#4f5d95",
-  ruby: "#701516", rb: "#701516",
+  ruby: "#701516",
+  rb: "#701516",
   swift: "#f05138",
-  kotlin: "#7f52ff", kt: "#7f52ff",
+  kotlin: "#7f52ff",
+  kt: "#7f52ff",
   r: "#198ce7",
   lua: "#000080",
   graphql: "#e10098",
@@ -229,9 +244,15 @@ function el(tag: string, props: Record<string, unknown>, children: Node[]): Elem
 
 // ─── Build blocco multiriga ───────────────────────────────────────────────────
 
-function buildCodeBlock(pre: Element, params: CodeParams, lang: string, opts: CodeStylerOptions): Element {
+function buildCodeBlock(
+  pre: Element,
+  params: CodeParams,
+  lang: string,
+  opts: CodeStylerOptions,
+): Element {
   const color = LANG_COLORS[lang.toLowerCase()] ?? "#6b7280"
-  const needsHeader = params.title || params.fold || (opts.showLanguageTag && lang) || opts.showCopyButton
+  const needsHeader =
+    params.title || params.fold || (opts.showLanguageTag && lang) || opts.showCopyButton
 
   const hItems: Node[] = []
 
@@ -248,26 +269,36 @@ function buildCodeBlock(pre: Element, params: CodeParams, lang: string, opts: Co
 
   if (opts.showCopyButton) {
     const svgCopy = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`
-    hItems.push(el("button", {
-      className: ["cs-copy-btn"],
-      title: "Copia codice",
-      "aria-label": "Copia codice",
-      onclick: "(function(b){var t=b.closest('.cs-wrapper').querySelector('pre').innerText;navigator.clipboard.writeText(t).then(function(){b.classList.add('copied');b.title='Copiato!';b.querySelector('.cs-copy-label').textContent='Copiato!';setTimeout(function(){b.classList.remove('copied');b.title='Copia codice';b.querySelector('.cs-copy-label').textContent='Copia';},2000)})})(this)",
-    }, [
-      rawNode(svgCopy),
-      el("span", { className: ["cs-copy-label"] }, [txt("Copia")]),
-    ]))
+    hItems.push(
+      el(
+        "button",
+        {
+          className: ["cs-copy-btn"],
+          title: "Copia codice",
+          "aria-label": "Copia codice",
+          onclick:
+            "(function(b){var t=b.closest('.cs-wrapper').querySelector('pre').innerText;navigator.clipboard.writeText(t).then(function(){b.classList.add('copied');b.title='Copiato!';b.querySelector('.cs-copy-label').textContent='Copiato!';setTimeout(function(){b.classList.remove('copied');b.title='Copia codice';b.querySelector('.cs-copy-label').textContent='Copia';},2000)})})(this)",
+        },
+        [rawNode(svgCopy), el("span", { className: ["cs-copy-label"] }, [txt("Copia")])],
+      ),
+    )
   }
 
   if (params.fold) {
     const svgChev = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`
-    hItems.push(el("span", { className: ["cs-chevron"], "aria-hidden": "true" }, [rawNode(svgChev)]))
+    hItems.push(
+      el("span", { className: ["cs-chevron"], "aria-hidden": "true" }, [rawNode(svgChev)]),
+    )
   }
 
-  const header = el("div", {
-    className: ["cs-header"],
-    style: `border-left: 3px solid ${color};`,
-  }, hItems)
+  const header = el(
+    "div",
+    {
+      className: ["cs-header"],
+      style: `border-left: 3px solid ${color};`,
+    },
+    hItems,
+  )
 
   const existingCls = Array.isArray(pre.properties?.className)
     ? [...(pre.properties.className as string[])]
@@ -288,7 +319,10 @@ function buildCodeBlock(pre: Element, params: CodeParams, lang: string, opts: Co
       if (!("data-line" in (node.properties ?? {}))) return
       ln++
       const lineText = toString(node)
-      if (params.highlightLines.has(ln) || params.highlightTexts.some((t) => lineText.includes(t))) {
+      if (
+        params.highlightLines.has(ln) ||
+        params.highlightTexts.some((t) => lineText.includes(t))
+      ) {
         const cls = Array.isArray(node.properties.className)
           ? [...(node.properties.className as string[]), "cs-hl"]
           : ["cs-hl"]
@@ -308,10 +342,14 @@ function buildCodeBlock(pre: Element, params: CodeParams, lang: string, opts: Co
   if (needsHeader) wrapperChildren.push(header)
   wrapperChildren.push(styledPre)
 
-  return el("div", {
-    className: wrapperCls,
-    ...(params.fold ? { onclick: "this.classList.toggle('cs-folded')" } : {}),
-  }, wrapperChildren)
+  return el(
+    "div",
+    {
+      className: wrapperCls,
+      ...(params.fold ? { onclick: "this.classList.toggle('cs-folded')" } : {}),
+    },
+    wrapperChildren,
+  )
 }
 
 // ─── Stile per codice inline già processato da rehype-pretty-code ─────────────
@@ -322,24 +360,30 @@ function buildCodeBlock(pre: Element, params: CodeParams, lang: string, opts: Co
 
 function styleInlineCode(tree: Root): void {
   visit(tree, "element", (node: Element, _index, parent) => {
-    // Cerca <code> inline già processati da rehype-pretty-code:
-    // hanno data-language ma NON sono dentro un <pre>
     if (node.tagName !== "code") return
-    if (!node.properties?.["data-language"]) return
 
-    // Salta se il padre è <pre> (è un blocco, non inline)
-    if (parent && (parent as Element).tagName === "pre") return
+    const hasDataLang = !!node.properties?.["data-language"]
+    if (!hasDataLang) return
 
+    const display = String(node.properties?.style ?? "")
+    const parentTag = parent ? (parent as Element).tagName : "none"
+    const hasPrettyFig = parent?.properties?.["data-rehype-pretty-code-figure"] ? true : false
+
+    // Skip blocks: in <pre>, wrapped in figure/span with data-rehype-pretty-code-figure, or display:grid
+    if (parentTag === "pre") return
+    if (hasPrettyFig) return
+    if (display.includes("display:grid")) return
+
+    // Process inline
     const lang = String(node.properties["data-language"])
     const color = LANG_COLORS[lang.toLowerCase()] ?? "#6b7280"
 
-    // Aggiungi classe e attributo per stile CSS
     const existingCls = Array.isArray(node.properties.className)
       ? [...(node.properties.className as string[])]
       : []
     node.properties.className = [...existingCls, "cs-inline"]
     node.properties["data-cs-lang"] = lang
-    node.properties.style = `--cs-inline-color: ${color}; ${String(node.properties.style ?? "")}`
+    node.properties.style = `--cs-inline-color: ${color}; ${display}`
   })
 }
 
@@ -382,7 +426,7 @@ export const CodeStyler: QuartzTransformerPlugin<Partial<CodeStylerOptions>> = (
             )
             const lang = langClass
               ? langClass.replace(/^language-|^lang-/, "")
-              : (String(node.properties?.["data-language"] ?? "") || "")
+              : String(node.properties?.["data-language"] ?? "") || ""
 
             const meta =
               String(node.properties?.["data-meta"] ?? "") ||
@@ -393,12 +437,15 @@ export const CodeStyler: QuartzTransformerPlugin<Partial<CodeStylerOptions>> = (
             const params = parseMetaString(meta, opts)
 
             const hasWork =
-              params.title || params.fold || params.lineNumbers ||
-              params.highlightLines.size > 0 || params.highlightTexts.length > 0 ||
-              (opts.showCopyButton && lang) || (opts.showLanguageTag && lang)
+              params.title ||
+              params.fold ||
+              params.lineNumbers ||
+              params.highlightLines.size > 0 ||
+              params.highlightTexts.length > 0 ||
+              (opts.showCopyButton && lang) ||
+              (opts.showLanguageTag && lang)
 
             if (!hasWork) return
-
             ;(parent.children as Node[])[index] = buildCodeBlock(node, params, lang, opts)
           })
         },
@@ -420,9 +467,18 @@ const CSS_CODE_STYLER = `
    Code Styler Plugin per Quartz
    ════════════════════════════════════════════ */
 
+/* ── Variabili per multicolonna e inline in light/dark mode ── */
+:root,html{--cs-inline-bg:#f6f8fa;--code-bg:#1e1e2e;--cs-header-bg:#ffffff0f;--cs-border:#ffffff14;--cs-lang-color:#a0aec0;--cs-title-color:#e2e8f0}
+:root[saved-theme=dark],html[data-theme=dark]{--cs-inline-bg:#1e1e2e;--code-bg:#1e1e2e;--cs-header-bg:#ffffff0f;--cs-border:#ffffff14;--cs-lang-color:#a0aec0;--cs-title-color:#e2e8f0}
+:root[saved-theme=light],html[data-theme=light]{--cs-inline-bg:#f0f3f6;--code-bg:#f6f8fa;--cs-header-bg:#0000000a;--cs-border:#0000001a;--cs-lang-color:#555c69;--cs-title-color:#24292f}
+
 /* ── Blocchi multiriga ── */
 .cs-wrapper{position:relative;margin:1.25em 0;border-radius:6px;overflow:hidden;font-size:.9em;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.cs-wrapper{background:#ffffff}
+:root[saved-theme=light] .cs-wrapper,html[data-theme=light] .cs-wrapper{background:#f6f8fa;border:1px solid #d0d7de}
+:root[saved-theme=dark] .cs-wrapper,html[data-theme=dark] .cs-wrapper{background:#1e1e2e}
 .cs-header{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 12px;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.07);font-family:var(--font-monospace,monospace);font-size:.82em;user-select:none;cursor:default;min-height:32px}
+:root[saved-theme=light] .cs-header,html[data-theme=light] .cs-header{background:rgba(0,0,0,.04);border-bottom:1px solid rgba(0,0,0,.08)}
 .cs-foldable .cs-header{cursor:pointer}
 .cs-foldable .cs-header:hover{background:rgba(255,255,255,.09)}
 .cs-lang-tag{font-size:.75em;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(180,190,210,.7)}
@@ -441,46 +497,69 @@ const CSS_CODE_STYLER = `
 .cs-wrapper pre code [data-line].cs-hl{background:rgba(255,214,0,.11);border-left:3px solid #f59e0b;margin-left:-3px}
 
 /* ── Codice inline con sintassi {lang} ── */
-/* rehype-pretty-code applica già i colori dei token Shiki,
-   noi aggiungiamo solo un badge con il nome del linguaggio
-   e un leggero stile visivo per differenziarlo dal codice
-   inline senza linguaggio. */
 code.cs-inline{
   position:relative;
-  padding-left:0.25em;
-  padding-right:0.25em;
+  padding:0.15em 0.4em;
   border-radius:4px;
-  /* Sottile bordo sinistro colorato con il colore del linguaggio */
-  border-left:2px solid var(--cs-inline-color,#6b7280);
+  background:var(--cs-inline-bg,#f6f8fa);
+  border-left:3px solid var(--cs-inline-color,#6b7280);
+  color:#24292e !important;
 }
+:root[saved-theme=light] code.cs-inline,html[data-theme=light] code.cs-inline{color:#24292e !important}
+:root[saved-theme=dark] code.cs-inline,html[data-theme=dark] code.cs-inline{color:#e1e4e8 !important}
 
-/* Badge linguaggio visualizzato dopo il codice inline */
+/* Badge linguaggio */
 code.cs-inline::after{
   content:attr(data-cs-lang);
   display:inline-block;
-  margin-left:0.35em;
-  padding:0 0.3em;
-  font-size:0.68em;
+  margin-left:0.4em;
+  padding:0.1em 0.4em;
+  font-size:0.65em;
   font-weight:700;
   text-transform:uppercase;
   letter-spacing:0.05em;
   color:var(--cs-inline-color,#6b7280);
-  opacity:0.7;
+  opacity:0.8;
   vertical-align:super;
   line-height:1;
-  /* Nessun background per non essere troppo invadente */
+  background:rgba(128,128,128,0.15);
+  border-radius:3px;
 }
 
-/* ── Tema chiaro ── */
-:root[saved-theme=light] .cs-header,html[data-theme=light] .cs-header{background:rgba(0,0,0,.04);border-bottom-color:rgba(0,0,0,.08)}
-:root[saved-theme=light] .cs-lang-tag,html[data-theme=light] .cs-lang-tag{color:rgba(60,80,110,.65)}
-:root[saved-theme=light] .cs-title,html[data-theme=light] .cs-title{color:rgba(20,40,80,.85)}
-:root[saved-theme=light] .cs-copy-btn,html[data-theme=light] .cs-copy-btn{color:rgba(70,90,130,.8);border-color:rgba(0,0,0,.15)}
-:root[saved-theme=light] .cs-copy-btn:hover,html[data-theme=light] .cs-copy-btn:hover{background:rgba(0,0,0,.07);color:#111}
-:root[saved-theme=light] .cs-foldable .cs-header:hover,html[data-theme=light] .cs-foldable .cs-header:hover{background:rgba(0,0,0,.06)}
-:root[saved-theme=light] .cs-has-line-numbers pre code [data-line]::before,html[data-theme=light] .cs-has-line-numbers pre code [data-line]::before{color:rgba(80,100,130,.35);border-right-color:rgba(0,0,0,.09)}
-:root[saved-theme=light] .cs-wrapper pre code [data-line].cs-hl,html[data-theme=light] .cs-wrapper pre code [data-line].cs-hl{background:rgba(255,190,0,.14);border-left-color:#d97706}
-:root[saved-theme=light] code.cs-inline,html[data-theme=light] code.cs-inline{border-left-color:var(--cs-inline-color,#6b7280)}
+/* Override ALL code blocks in light mode - must be very specific */
+:root[saved-theme=light] pre,
+html[data-theme=light] pre {
+  background: #f6f8fa !important;
+  border: 1px solid #d0d7de !important;
+}
+
+/* Override code colors INSIDE cs-wrapper - critical! */
+.cs-wrapper pre code span {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+.cs-wrapper {
+  background: #f6f8fa !important;
+  border: 1px solid #d0d7de !important;
+}
+.cs-wrapper pre code span {
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+:root[saved-theme=light] figure[data-rehype-pretty-code-figure],
+html[data-theme=light] figure[data-rehype-pretty-code-figure] {
+  background: #f6f8fa;
+  border: 1px solid #d0d7de;
+}
+:root[saved-theme=light] figure[data-rehype-pretty-code-figure] pre,
+html[data-theme=light] figure[data-rehype-pretty-code-figure] pre {
+  background: #f6f8fa !important;
+}
+:root[saved-theme=light] figure[data-rehype-pretty-code-figure],
+html[data-theme=light] figure[data-rehype-pretty-code-figure] {
+  background: #f6f8fa;
+  border: 1px solid #d0d7de;
+}
 
 @media(max-width:600px){.cs-copy-label{display:none}}
 `
