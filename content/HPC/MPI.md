@@ -104,3 +104,112 @@ Alcune delle informazioni sono:
 >```
 >La variabile `count` conterrà il numero di elementi ricevuti dal processore.
 
+### Concorrenza
+Utilizzando _send/recive_ bloccanti, si potrebbe incappare in dei ==deadlock== se non correttamente gestiti.
+>[!warning] Deadlock
+>![[MPI_deadlock.png]]
+
+>[!faq] Come possiamo risolvere questi problemi di concorrenza?
+
+>[!success] Soluzione
+>- Possiamo riordinare le chiamate bloccanti! 
+>- Altrimenti utilizziamo chiamate _non bloccanti_ oppure usiamo _MPI_Sendrecv()_, se appropriato.
+
+#### Chiamate non bloccanti
+##### Send
+```C
+int MPI_Isend(const void *start, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *req)
+```
+La funzione è identica a quella [[#Invio bloccante|bloccante]], tranne che
+- _req_ contiene un identificatore univoco della richiesta
+- la funzione ritorna immediatamente
+##### Receive
+```C
+int MPI_Irecv(void *start, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Request *req)
+```
+La funzione è identica a quella [[#Ricezione bloccante|bloccante]], tranne che
+- _req_ è un gestore di richieste con il quale si tiene traccia del completamento della ricezione dei messaggi
+
+>[!warning] Attenzione
+>Per utilizzare al meglio il receive non bloccante, bisogna far uso di _MPI_Wait()_ o _MPI_Test()_ per poter determinare il termine dell'operazione
+
+>[!info] N.B.
+>È possibile combinare send bloccanti con receive non bloccanti e viceversa.
+##### Test
+Controlla lo stato di una determinata operazione send o receive non bloccante.
+```C
+int MPI_Test(MPI_Request *request, int *flag, MPI_Status *status)
+```
+- _flag_ è impostato a 1 se l'operazione è terminata, a 0 altrimenti
+
+>[!note] Operazioni multiple
+>Esistono funzioni come _MPI_Testany_, *MPI_Testall*, *MPI_Testsome* che permettono di verificare il completamento di più operazioni.
+
+##### Wait
+Attende finché l'operazione non è terminata.
+```C
+int MPI_Wait(MPI_Request *request, MPI_Status *status)
+```
+
+>[!note] Operazioni multiple
+>Come per [[#Test]] esistono
+>- *MPI_Waitany*
+>- *MPI_Waitall*
+>- *MPI_Waitsome*
+
+>[!example] Esempio di async send
+>![[MPI_async_send.png]]
+
+##### Abort
+Per terminare la computazione, invece di usare `abort()` o `exit()` usiamo _MPI_Abort_ per terminare in modo appropriato TUTTI i processi del communicator indicato.
+```C
+MPI_Abort(comm, err)
+```
+
+>[!warning] Se si indica MPI_COMM_WORLD la funzione ritornerà il codice di errore "err"
+
+>[!example] Esempio del trapezoide
+>![[MPI_trap.png]]
+>Vogliamo calcolare l'area sottesa del trapezoide
+>
+>**Approccio Naïve**
+>Assegnamo ad ogni processo una parte di area da calcolare e affidiamo la somma dei calcoli parziali ad un processo _master_, che nel nostro caso sarà quello con `rank = 0`
+>
+>![[MPI_trap_pseudo.png|500]]
+
+## Collective communication
+Nella pratica [[#Invio bloccante|send]] e [[#Ricezione bloccante|receive]] non vengo quasi mai usati, perché si preferisce usare il **bulk synchronous pattern**
+>[!info] Bulk synchronous pattern
+>Consiste semplicemente nell'esecuzione di operazioni locali e la successiva comunicazione dei risultati ad una **<u>vista globale dei processi</u>**
+
+Le _comunicazioni collettive_ vengono eseguite da ogni processore per condividere i propri risultati per poter calcolare i risultati globali.
+Inoltre sono più efficienti delle comunicazioni point-to-point.
+
+>[!tip] Essential skill
+>Per un programmatore MPI, capire quando è più appropriato utilizzare le collective communication è una skill essenziale.
+
+### Barrier
+```C
+MPI_Barrier()
+```
+Esegue una barriera di sincronizzazione in un gruppo: i processi devono aspettare alla barriera il termine di tutti gli altri processi del proprio gruppo.
+
+### Broadcast
+Per effettuare una comunicazione [[I protocolli Internet#Broadcast|broadcast]] tra processi, si fa uso di `{C} MPI_Bcast()`
+```C
+count = 3; 
+src = 1; /* broadcast originates from process 1 */ 
+MPI_Bcast(buf, count, MPI_INT, src, MPI_COMM_WORLD);
+```
+
+![[MPI_broadcast.png]]
+### Scatter
+Distribuisce i dati tra gli altri processi del gruppo.
+```C hl:4
+sendcnt = 3; /* how many items are sent to each process */ 
+recvcnt = 3; /* how many items are received by each process */ 
+src = 1; /* process 1 contains the message to be scattered */
+MPI_Scatter(sendbuf, sendcnt, MPI_INT, recvbuf, recvcnt, MPI_INT, src, MPI_COMM_WORLD);
+```
+
+![[MPI_scatter.png]]

@@ -45,7 +45,7 @@ Le istruzioni _SIMD_, a differenza delle istruzioni classiche, può prendere in 
 >$$\large[a_0,a_1,a_2,a_3]+[b_0,b_1,b_2,b_3]=[c_0,c_1,c_2,c_3]$$
 >Nonostante ci siano molti più elementi su cui operare, il tempo di esecuzione sarà uguale a quello per calcolare $a+b=c$.
 >In questo caso possiamo usare array con solo 4 elementi ciascuno perché il nostro processore dispone soltanto di 4 unità di calcolo _ALU_.
->![[HPC/Attatchment/SIMD.png]] 
+>![[SIMD.png]] 
 
 
 ## Parallelismo Multicore
