@@ -204,7 +204,7 @@ MPI_Bcast(buf, count, MPI_INT, src, MPI_COMM_WORLD);
 
 ![[MPI_broadcast.png]]
 ### Scatter
-Distribuisce i dati tra gli altri processi del gruppo.
+Distribuisce i dati tra gli altri processi del gruppo, è come se si eseguissero molteplici send o receive.
 ```C hl:4
 sendcnt = 3; /* how many items are sent to each process */ 
 recvcnt = 3; /* how many items are received by each process */ 
@@ -213,3 +213,43 @@ MPI_Scatter(sendbuf, sendcnt, MPI_INT, recvbuf, recvcnt, MPI_INT, src, MPI_COMM_
 ```
 
 ![[MPI_scatter.png]]
+### Gather
+È l'operazione opposta a [[#Scatter|scatter]], unisce i dati dei vari processi nello stesso insieme.
+```C hl:4
+sendcnt = 3; /* how many items are sent by each process */ 
+recvcnt = 3; /* how many items are received from each process */ 
+dst = 1; /* message will be gathered at process 1 */ 
+MPI_Gather(sendbuf, sendcnt, MPI_INT, recvbuf, recvcnt, MPI_INT, dst, MPI_COMM_WORLD);
+```
+
+![[MPI_gather.png]]
+#### MPI_Allgather()
+Si comporta come [[#Gather|MPI_Gather]] ma, una volta ricomposti i dati dei processi, ridistribuisce il risultato.
+```C hl:3
+sendcnt = 3; 
+recvcnt = 3; 
+MPI_Allgather(sendbuf, sendcnt, MPI_INT, recvbuf, recvcnt, MPI_INT, MPI_COMM_WORLD);
+```
+![[MPI_AllGather.png]]
+
+>[!example] Esempio somma di vettori
+>$$\large
+>\begin{align}
+>x+y= (x_{0},x_{1},\dots,x_{n}) + (y_{0},y_{1},\dots,y_{n}) \\
+> = (x_{0}+y_{0},x_{1}+y_{1},\dots,x_{n}+y_{n}) \\
+> = (z_{0},z_{1},\dots,z_{n-1})
+>\end{align}
+>$$
+>```C
+>void sum( double* x, double* y, double* z, int n ) 
+>{ 
+>	for (int i=0; i<n; i++){
+>		z[i] = x[i] + y[i];
+>	}
+>}
+>```
+>![[MPI_parallel_vectorSum.png]]
+
+
+
+

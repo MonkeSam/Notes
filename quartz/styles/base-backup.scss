@@ -422,184 +422,93 @@ h6 {
   margin-bottom: 1rem;
 }
 
-// ============================================================================
-// STILI CODE STYLER - COMPATIBILI CON OBSIDIAN
-// ============================================================================
-
 figure[data-rehype-pretty-code-figure] {
-  margin: 1rem 0;
+  margin: 0;
   position: relative;
   line-height: 1.6rem;
-  border-radius: 8px;
-  overflow: hidden;
-  
-  // Sfondo chiaro come in Obsidian (modalità chiara)
-  background-color: #f8f9fa;
-  border: 1px solid #e1e4e8;
-  
-  // Tema scuro
-  @media (prefers-color-scheme: dark) {
-    background-color: #1e1e1e;
-    border-color: #3e3e42;
-  }
+  position: relative;
 
-  // Titolo del codeblock
   & > [data-rehype-pretty-code-title] {
     font-family: var(--codeFont);
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 0.6rem 1rem;
-    background-color: #e8eaed;
-    color: #202124;
-    border-bottom: 1px solid #dadce0;
-    margin: 0;
-    
-    @media (prefers-color-scheme: dark) {
-      background-color: #2d2d30;
-      color: #cccccc;
-      border-bottom-color: #3e3e42;
-    }
+    font-size: 0.9rem;
+    padding: 0.1rem 0.5rem;
+    border: 1px solid var(--lightgray);
+    width: fit-content;
+    border-radius: 5px;
+    margin-bottom: -0.5rem;
+    color: var(--darkgray);
   }
 
   & > pre {
-    margin: 0;
     padding: 0;
-    background: transparent !important;
-    border: none;
   }
 }
 
 pre {
   font-family: var(--codeFont);
-  padding: 0;
-  margin: 1rem 0;
-  border-radius: 8px;
+  padding: 0 0.5rem;
+  border-radius: 5px;
   overflow-x: auto;
-  
-  // Sfondo chiaro predefinito (stile Obsidian)
-  background-color: #f8f9fa !important;
-  border: 1px solid #e1e4e8;
-  
-  // Tema scuro
-  @media (prefers-color-scheme: dark) {
-    background-color: #1e1e1e !important;
-    border-color: #3e3e42;
-  }
+  border: 1px solid var(--lightgray);
+  position: relative;
 
   &:has(> code.mermaid) {
     border: none;
-    background: transparent !important;
   }
 
   & > code {
     background: none;
     padding: 0;
     font-size: 0.85rem;
-    line-height: 1.6;
     counter-reset: line;
     counter-increment: line 0;
     display: grid;
-    padding: 1rem 0;
+    padding: 0.5rem 0;
     overflow-x: auto;
-    
-    // Colore testo per modalità chiara (come Obsidian)
-    color: #24292e;
-    
-    @media (prefers-color-scheme: dark) {
-      color: #e1e4e8;
-    }
 
-    // Caratteri evidenziati inline
     & [data-highlighted-chars] {
-      background-color: rgba(255, 235, 59, 0.3);
-      border-radius: 3px;
-      padding: 0.1rem 0.2rem;
-      
-      @media (prefers-color-scheme: dark) {
-        background-color: rgba(255, 235, 59, 0.2);
-      }
+      background-color: var(--highlight);
+      border-radius: 5px;
     }
 
-    // Ogni riga di codice
     & > [data-line] {
-      padding: 0 1rem;
+      padding: 0 0.25rem;
       box-sizing: border-box;
       border-left: 3px solid transparent;
 
-      // ========================================
-      // EVIDENZIAZIONE RIGHE - STILE CODE STYLER
-      // ========================================
       &[data-highlighted-line] {
-        // Sfondo giallo chiaro come in Obsidian (identico allo screenshot)
-        background-color: rgba(255, 249, 196, 0.9);
-        // Bordo sinistro dorato/arancione
-        border-left-color: #ffc107;
-        
-        // Tema scuro - sfondo giallo più scuro ma sempre visibile
-        @media (prefers-color-scheme: dark) {
-          background-color: rgba(255, 235, 59, 0.15);
-          border-left-color: #ffa000;
-        }
+        background-color: var(--highlight);
+        border-left: 3px solid var(--secondary);
       }
 
-      // Numeri di riga
       &::before {
         content: counter(line);
         counter-increment: line;
-        width: 2.5rem;
-        margin-right: 1.5rem;
+        width: 1rem;
+        margin-right: 1rem;
         display: inline-block;
         text-align: right;
-        // Colore numeri di riga (grigio chiaro come in Obsidian)
-        color: #959da5;
-        user-select: none;
-        
-        @media (prefers-color-scheme: dark) {
-          color: #6e7681;
-        }
+        color: rgba(115, 138, 148, 0.6);
       }
     }
 
-    // Supporto per numeri di riga con più cifre
     &[data-line-numbers-max-digits="2"] > [data-line]::before {
-      width: 3rem;
+      width: 2rem;
     }
 
     &[data-line-numbers-max-digits="3"] > [data-line]::before {
-      width: 3.5rem;
-    }
-    
-    &[data-line-numbers-max-digits="4"] > [data-line]::before {
-      width: 4rem;
+      width: 3rem;
     }
   }
 }
 
-// Stili per il codice inline
 code {
   font-size: 0.9em;
+  color: var(--dark);
   font-family: var(--codeFont);
-  border-radius: 3px;
-  padding: 0.15rem 0.4rem;
-  
-  // Stile chiaro (Obsidian-like)
-  background-color: #f3f4f6;
-  color: #d73a49;
-  border: 1px solid #e1e4e8;
-  
-  @media (prefers-color-scheme: dark) {
-    background-color: #2d2d30;
-    color: #f97583;
-    border-color: #3e3e42;
-  }
-}
-
-// Evita che il codice inline dentro i pre erediti questi stili
-pre code {
-  background: none !important;
-  border: none !important;
-  padding: 0 !important;
-  color: inherit !important;
+  border-radius: 5px;
+  padding: 0.1rem 0.2rem;
+  background: var(--lightgray);
 }
 
 tbody,
@@ -730,7 +639,6 @@ iframe.pdf {
   transition: width 0.2s ease;
   z-index: 9999;
 }
-
 article img {
   max-width: 100%;
   height: auto;
@@ -761,7 +669,7 @@ ul.has-list-bullet {
   margin-top: 0px;
 }
 
-article a {
+article a{
   color: red !important;
   text-decoration: underline !important;
 }
