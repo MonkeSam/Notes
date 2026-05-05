@@ -250,6 +250,40 @@ MPI_Allgather(sendbuf, sendcnt, MPI_INT, recvbuf, recvcnt, MPI_INT, MPI_COMM_WOR
 >```
 >![[MPI_parallel_vectorSum.png]]
 
+### Comunicazioni collettive non contigue
+Fino ad ora abbiamo visto come lavorano [[#Gather]] e [[#Scatter]]: trattano i dati in modo contiguo, ma in alcuni casi vogliamo poter selezionare solo parti specifiche dei dati su cui lavoriamo.
+>[!example] Vediamo come scatter opera con dati contigui
+>![[MP_contiguous_scatter.png|500]]
+#### MPI_Scatterv()
+Sono consentiti gap tra i dati utili, che possono essere di diverse dimensioni e distribuiti a piacimento.
+![[MPI_scatterv.png]]
 
+>[!note] Come funziona
+>Possiamo indicare le varie dimensioni e il posizionamento dei _"sub-buffer"_:
+>- `int *sendcnts` indica il numero di elementi del "sub-buffer"
+>- `int *displs` è un padding che viene applicato dalla posizione `0` del buffer. Indicato con il numero di elementi da "saltare"
+>- `int recvcnt` rappresenta il numero di elementi che contiene il buffer del processo che riceve i dati
+>![[Screenshot 2026-05-05 at 16.50.04.png]]
 
+>[!example] Esempio 
+>```C
+>int sendbuf[] = {10, 11, 12, 13, 14, 15, 16}; /* at master */
+int displs[] = {3, 0, 1}; /* assume P=3 MPI processes */
+int sendcnts[] = {3, 1, 4};
+int recvbuf[5];
+...
+MPI_Scatterv(sendbuf, sendcnts, displs, MPI_INT, recvbuf, 5,
+MPI_INT, 0, MPI_COMM_WORLD);
+>```
+>- `sendbuf[]` rappresenta i dati del nostro array
+>- `displs[]` assegna ad ogni processo l'indice di partenza dei dati, assumendo che ce ne siano 3
+>- `sendcnts[]` assegna il numero di elementi per processo
+>- `recvbuf[5]` rappresenta la grandezza del buffer dei destinatari, in questo caso sarà di 5 elementi
+>![[MPI_scatterv_example.png]]
+
+#### MPI_Gatherv()
+Si comporta esattamente come [[#MPI_Scatterv()]] e ha con gli stessi parametri.
+Ciò che cambia è il comportamento che, come già visto è quello di [[#Gather|assemblare i risultati parziali in un unico buffer]]
+>[!info] Dalla pagina ufficiale [mpich.org](https://www.mpich.org/static/docs/v4.1/www3/MPI_Gatherv.html)
+>![[MPI_gatherv.png]]
 
