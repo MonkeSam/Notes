@@ -225,6 +225,8 @@ Possiamo utilizzare le variabili d'ambiente:
 >Vediamo che non conviene usare la seconda soluzione
 >![[odd-eve-test.png]]
 
+^6aa0c8
+
 ## Sincronizzazione
 - `{C}#pragma omp barrier` è una dichiarazione che introduce una sincronizzazione a barriera nel punto in cui viene dichiarata
 - `{C}#pragma omp master` segna un'area del blocco parallelo che viene eseguita esclusivamente dal _thread master_ (`rank = 0`), gli altri thread saltano questa regione

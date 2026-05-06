@@ -204,7 +204,7 @@ MPI_Bcast(buf, count, MPI_INT, src, MPI_COMM_WORLD);
 
 ![[MPI_broadcast.png]]
 ### Scatter
-Distribuisce i dati tra gli altri processi del gruppo, è come se si eseguissero molteplici send o receive.
+L'operazione [[Pattern di Programmazione Parallela#Scatter-Gather|scatter]] distribuisce i dati tra gli altri processi del gruppo, è come se si eseguissero molteplici send o receive.
 ```C hl:4
 sendcnt = 3; /* how many items are sent to each process */ 
 recvcnt = 3; /* how many items are received by each process */ 
@@ -275,6 +275,7 @@ int recvbuf[5];
 MPI_Scatterv(sendbuf, sendcnts, displs, MPI_INT, recvbuf, 5,
 MPI_INT, 0, MPI_COMM_WORLD);
 >```
+>
 >- `sendbuf[]` rappresenta i dati del nostro array
 >- `displs[]` assegna ad ogni processo l'indice di partenza dei dati, assumendo che ce ne siano 3
 >- `sendcnts[]` assegna il numero di elementi per processo
@@ -286,4 +287,135 @@ Si comporta esattamente come [[#MPI_Scatterv()]] e ha con gli stessi parametri.
 Ciò che cambia è il comportamento che, come già visto è quello di [[#Gather|assemblare i risultati parziali in un unico buffer]]
 >[!info] Dalla pagina ufficiale [mpich.org](https://www.mpich.org/static/docs/v4.1/www3/MPI_Gatherv.html)
 >![[MPI_gatherv.png]]
+
+### Reduction
+Con la funzione *MPI_Reduce()* possiamo eseguire una [[Pattern di Programmazione Parallela#Reduce|reduction]] salvando il risultato su un processo.
+
+>[!example] Esempio
+>```C
+>count = 1; 
+>dst = 1; /* result will be placed in process 1 */ 
+>MPI_Reduce(sendbuf, recvbuf, count, MPI_INT, MPI_SUM, dst, MPI_COMM_WORLD);
+>```
+>![[MPI_Reduce.png]]
+
+>[!warning] Count
+>_count_ rappresenta il numero di elementi presenti nel buffer sorgente (`sendbuf`) che sarà identico a quello del buffer destinatario (`recvbuf`). 
+>> Quando `count > 1` l'i-esimo elemento del buffer destinatario (`recvbuf[i]`) conterrà la somma degli i-esimi elementi dei buffer sorgenti dei vari processi (`sendbuf[i]`)
+>>>[!example] 
+>>>![[MPI_reduction_count.png]]
+
+
+
+>[!info] Operazioni
+>![[MPI_reduce_operations.png|500]]
+
+#### Minimum/Maximum with location
+Con le operazioni *MPI_MAXLOC* e *MPI_MINLOC* possiamo trovare l'elemento minimo o massimo tra processi, associando ad esso un indice come vediamo qui sotto.
+```C
+struct {double val; int idx} in, out; 
+dst = 1; /* result will be placed in process 1 */ 
+MPI_Reduce(&in, &out, 1, MPI_DOUBLE_INT, MPI_MINLOC, dst, MPI_COMM_WORLD);
+```
+
+>[!example] MPI_MINLOC
+>![[MPI_MINLOC.png]]
+
+#### MPI_Allreduce()
+Questa funzione esegue l'operazione di [[Pattern di Programmazione Parallela#Reduce|reduction]] e distribuisce il risultato a tutti i processi.
+```C
+count = 1; 
+MPI_Allreduce(sendbuf, recvbuf, count, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+```
+![[MPI_Allreduce.png]]
+
+### MPI_Alltoall()
+Ogni processo esegue un'operazione di [[Pattern di Programmazione Parallela#Scatter-Gather|scatter]] 
+```C
+sendcnt = 2; recvcnt = 2; 
+MPI_Alltoall(sendbuf, sendcnt, MPI_INT, recvbuf, recvcnt, MPI_INT, MPI_COMM_WORLD);
+```
+
+>[!example] Esempio
+>Il buffer sorgente (`sendbuf[]`) di ogni processo viene diviso e ogni frammento viene aggiunto al buffer destinatario (`recvbuf[]`)
+>
+>![[MPI_Alltoall.png]]
+
+### MPI_Scan()
+È possibile eseguire una operazione [[Pattern di Programmazione Parallela#Scan (Prefix Sum)|Scan (inclusivo)]] prendendo come $\large y_{0}, \dots ,y_{n-1}$ ogni processo $T_{0},\dots,T_{n-1}$:
+```C
+count = 1; 
+MPI_Scan(sendbuf, recvbuf, count, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+```
+![[MPI_Scan.png|600]]
+
+>[!warning] Count
+>Se `count > 1` l'i-esima posizione del buffer destinatario (`recvbuf[i]`) del processo `j` contiene il risultato dello _scan_ degli elementi in i-esima posizione dal processo 0 al j-esimo processo.
+>```C
+>count = 3;
+>MPI_Scan(sendbuf, recvbuf, count, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+>```
+>![[MPI_scan_count.png]]
+
+## Odd-Even Transposition Sort
+Abbiamo già visto questo algoritmo per [[OpenMP]]:
+![[OpenMP#^6aa0c8]]
+
+### Implementazione MPI
+>[!note] MPI
+>La comunicazione nei [[Architetture Parallele#MIMD|sistemi a memoria distribuita]] è molto costosa, quindi non è conveniente lavorare sui singoli elementi di un array.
+La cosa migliore da fare è utilizzare una [[Architetture Parallele#Coarse-grained multithreading|frammentazione a grana grossa]]  suddividendo gli array in blocchi da assegnare ad ogni processo.
+
+>[!quote] Implementazione di riferimento
+>G. Baudet and D. Stevenson, "Optimal Sorting Algorithms for Parallel Computers," in IEEE Transactions on Computers, vol. C27, no. 1, pp. 84-87, Jan. 1978. doi:10.1109/TC.1978.1674957
+
+#### Algoritmo
+1. L'array viene scomposto in blocchi e viene assegnato ad ogni processo MPI
+2. Ogni processo ordina il proprio blocco
+3. Ad ogni scambio il processo:
+	-  `i` invia una copia del proprio blocco ordinato al processo `i+1`
+	- `i+1` invia una copia del proprio blocco ordinato al processo `i`
+4. Dopo lo scambio i processi eseguono un _merge_ in tempo lineare $\Theta(n)$ in modo da avere un nuovo array ordinato
+5. Scarto degli eccessi  del proprio array dopo il merge
+	- `i` scarta la =={red}parte superiore==
+	- `i+1` scarta la =={blue}parte inferiore==
+
+![[MPI_OddEvenTranspositionSort.png]]
+
+>[!info] Scambio dei dati
+>![[MPI_OddEvenTranspositionSort_communication_flow.png]]
+
+>[!warning] Deadlock
+>Bisogna fare attenzione all'implementazione perché so potrebbero avere dei casi di deadlock durante lo scambio di informazioni tra processi: se entrambi i processi inviano contemporaneamente i propri dati, essendo [[#Invio bloccante|MPI_Send()]] una chiamata bloccante, entrambi i processi rimarranno in attesa della conferma di ricezione dei dati inviati.
+>
+>![[MPI_OddEvenTransposition_deadlock.png]]
+>>[!success] Soluzione 1 (poco elegante)
+>>In base al tipo di processo (pari o dispari) eseguo prima un [[#Invio bloccante|send]] o un [[#Ricezione bloccante|receive]]
+>>![[MPI_OddEvenTransposition_deadlock_solution1.png]]
+>
+>>[!success] Soluzione 2 (migliore)
+>>Eseguiamo [[#Invio bloccante|send]] e [[#Ricezione bloccante|receive]] in una singola chiamata con *MPI_Sendrecv()*.
+>>È una chiamata specifica che evita stalli o crash.
+
+##### MPI_Sendrecv()
+Esegue [[#Invio bloccante|send]] e [[#Ricezione bloccante|receive]] in una singola chiamata in modo che non si creino stalli o crash.
+>[!info] `dest` e `source` possono essere uguali o differenti.
+
+```C
+int MPI_Sendrecv( void* sendbuf, 
+	int sendcount, 
+	MPI_Datatype sendtype, 
+	int dest, 
+	int sendtag, 
+	void* recvbuf, 
+	int recvcount, 
+	MPI_Datatype recvtype, 
+	int source, 
+	int recvtag, 
+	MPI_Comm comm, 
+	MPI_Status* status 
+)
+```
+
+
 
