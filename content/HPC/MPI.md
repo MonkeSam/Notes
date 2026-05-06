@@ -402,7 +402,8 @@ Esegue [[#Invio bloccante|send]] e [[#Ricezione bloccante|receive]] in una singo
 >[!info] `dest` e `source` possono essere uguali o differenti.
 
 ```C
-int MPI_Sendrecv( void* sendbuf, 
+int MPI_Sendrecv( 
+	void* sendbuf, 
 	int sendcount, 
 	MPI_Datatype sendtype, 
 	int dest, 
