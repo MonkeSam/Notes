@@ -94,7 +94,7 @@ Con questo schema classifichiamo le architetture in base ai _flussi di istruzion
 ![[Flynn.png]]
 - **SISD**: È la tradizionale architettura seriale in cui si ha un solo flusso di dati e un solo flusso di istruzioni
 - **MIMD**: Ne fanno parte le architetture multicore o dei super computer che sono interconnessi tra loro
-- **SIMD**: È una architettura che permette di lavorare su multipli dati con un singolo flusso di istruzioni ([[Programmazione Parallela#Istruzioni SIMD|esempio di somme con array]])
+- **SIMD**: È una architettura che permette di lavorare su multipli dati con un singolo flusso di istruzioni ([[Programmazione Parallela#Istruzioni SIMD|esempio di somme con array]]) ^f84d6c
 - **MISD**: Multiple istruzioni su singoli dati (Non è praticamente utilizzata) 
 ### SISD
 ![[SISD.png|500]]
@@ -114,7 +114,7 @@ Mentre le istruzioni SSE 2 possono gestire:
 
 ### MIMD
 ![[MIMD.png]]
-Si suddividono in:
+Si suddividono in: ^fdd77d
 - **Memoria Condivisa**
 - **Memoria Distribuita** ^43cfc6
 #### Architettura Ibrida

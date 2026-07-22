@@ -63,6 +63,8 @@ Per specificare configurazioni alternative  bisogna creare una cartella in `res/
 Dove
 - `<resources_name>` sono i nomi delle sottocartelle che abbiamo appena visto
 - `<qualifier>` specifica una configurazione
+
+
   >[!important] Bisogna separare con `-` se si vuole usare più qualifier
   
   
